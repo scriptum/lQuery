@@ -42,7 +42,7 @@ end
 
 --image
 local image_draw = function(s)
-  G.draw(s.image, s.x, s.y, s.angle, s.sx, s.sy)
+  G.draw(s.image, s.x, s.y, s.angle, s.sx, s.sy, s.ox, s.oy)
 end
 function Entity:image(image)
  if image then

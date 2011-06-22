@@ -5,7 +5,9 @@ lQuery = {
   hooks = {},
   addhook = function(hook)
     table.insert(lQuery.hooks, hook)
-  end
+  end,
+  _MousePressedOwner = false,
+  MousePressed = false
 }
 
 
@@ -311,25 +313,20 @@ local function events(v)
         lQuery.MouseButton = nil
         v._wheel(v, mX, mY, "d")
       end
-    elseif lQuery.MousePressed == true and not lQuery.MousePressedOwner then 
+    elseif lQuery.MousePressed == true and lQuery._MousePressedOwner == true then 
       lQuery.MousePressedOwner = v
-      if v._mousepress then 
-        v._mousepress(v, mX, mY, lQuery.MouseButton)
-      end
     end
-    if not v._hasMouse or v._hasMouse == false then
-      v._hasMouse = true
-      if v._mouseover then v._mouseover(v, mX, mY) end
-    end
+    if not lQuery._hover then lQuery.hover = v end
   else
-    if v._hasMouse and v._hasMouse == true then 
-      v._hasMouse = false
+    if lQuery._hover == v then 
+      lQuery._hover = nil
+      lQuery.hover = nil
       if v._mouseout then v._mouseout(v, mX, mY) end
     end
   end
 end
 
-function process_entities(ent)
+local function process_entities(ent)
   if ent._visible == true then 
     if ent._animQueue then 
       animate(ent) 
@@ -349,4 +346,59 @@ function process_entities(ent)
       end
     end
   end
+end
+
+lQuery.event = function(e, a, b, c)
+  if e == "mp" then
+    lQuery.MousePressed = true
+    lQuery.MouseButton = c
+    lQuery._MousePressedOwner = true
+  elseif e == "mr" then 
+    lQuery.MousePressed = false
+    lQuery.MouseButton = c
+    --click handler
+    local v = lQuery.MousePressedOwner
+    if v and v._bound and v._bound(v, mX, mY) then
+      local v = lQuery.MousePressedOwner
+      if v._mouserelease then 
+        v._mouserelease(v, mX, mY, c)
+      end
+      if v._click then 
+        v._click(v, mX, mY, c)
+      end
+    end
+    lQuery.MousePressedOwner = nil
+  elseif e == "kp" then
+    lQuery.KeyPressed = true
+    lQuery.KeyPressedKey = a
+    lQuery.KeyPressedUni = b
+    lQuery.KeyPressedCounter = 1
+  elseif e == "kr" then
+    lQuery.KeyPressed = false
+  elseif e == "q" then
+    if atexit then atexit() end
+  end
+end
+
+lQuery.process = function()
+  for _, v in pairs(lQuery.hooks) do
+    v()
+  end
+
+  if screen then process_entities(screen) end
+  
+  --fix mousepress bug
+  local v = lQuery.MousePressedOwner
+  if v and lQuery._MousePressedOwner == true then
+    if v._mousepress then 
+      v._mousepress(v, mX, mY, lQuery.MouseButton)
+    end
+  end
+  
+  local v = lQuery.hover
+  if v and not lQuery._hover then
+    if v._mouseover then v._mouseover(v, mX, mY) end
+    lQuery._hover = v
+  end
+  lQuery._MousePressedOwner = false
 end

@@ -39,6 +39,8 @@ function love.run()
     if love.update then
       love.update(dt)
     end
+    --get mouse position
+    mX, mY = getMouseXY()
     -- Process events.
     if love.event then
       for e,a,b,c in love.event.poll() do
@@ -50,48 +52,17 @@ function love.run()
             return
           end
         end
-        if e == "mp" then
-          lQuery.MousePressed = true
-          lQuery.MouseButton = c
-        elseif e == "mr" then 
-          lQuery.MousePressed = false
-          lQuery.MouseButton = c
-          --click handler
-          local v = lQuery.MousePressedOwner
-          if v and v._bound(v, mX, mY) then
-            local v = lQuery.MousePressedOwner
-            if v._mouserelease then 
-              v._mouserelease(v, mX, mY, c)
-            end
-            if v._click then 
-              v._click(v, mX, mY, c)
-            end
-          end
-          lQuery.MousePressedOwner = nil
-        elseif e == "kp" then
-          lQuery.KeyPressed = true
-          lQuery.KeyPressedKey = a
-          lQuery.KeyPressedUni = b
-          lQuery.KeyPressedCounter = 1
-        elseif e == "kr" then
-          lQuery.KeyPressed = false
-        elseif e == "q" then
-          if atexit then atexit() end
-        end
+        lQuery.event(e,a,b,c)
         love.handlers[e](a,b,c)
       end
     end
-    mX, mY = getMouseXY()
+    
     if G then
       G.clear()
       time = love.timer.getTime()
       
-      for _, v in pairs(lQuery.hooks) do
-        v()
-      end
-
-      if screen then process_entities(screen) end
-
+      lQuery.process()
+      
       if love.draw then love.draw() end
       G.present()
     end --if G
