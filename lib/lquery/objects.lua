@@ -27,9 +27,9 @@ end
 local text_draw = function(s)
   G.fontSize = s.fontSize or 12
   if s.w then
-    Gprintf(s.text, s.x, s.y, s.w, s.align)
+    G.printf(s.text, s.x, s.y, s.w, s.align)
   else
-    Gprint(s.text, s.x, s.y)
+    G.print(s.text, s.x, s.y)
   end
 end
 function Entity:text(text, size, align)
