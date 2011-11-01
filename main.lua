@@ -35,4 +35,3 @@ end)
 
 --mouse = Entity:new(screen):draw(function(s)love.mouse.setPosition(s.x, s.y)end):animate({x=500, y=100}):animate({y=200}, {speed=1,callback=function(s)s:delete()end})
 
-

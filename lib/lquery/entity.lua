@@ -3,8 +3,12 @@ local easing = require("lib/lquery/easing")
 lQuery = {
 	fx = true,
 	hooks = {},
+	_onresize = {},
 	addhook = function(hook)
 		table.insert(lQuery.hooks, hook)
+	end,
+	onresize = function(func)
+		table.insert(lQuery._onresize, func)
 	end,
 	_MousePressedOwner = false,
 	MousePressed = false
@@ -132,9 +136,11 @@ function Entity:animate(keys, options)
       old = {},
       speed = options.speed or 0.3,
       lasttime = nil, 
-      easing = options.easing or 'swing', --swing or linear
+      easing = easing[options.easing] or easing.swing,
       loop = options.loop or false,
-      callback = options.callback or options.cb
+      callback = options.callback or options.cb,
+      a = options.a,
+      b = options.b
     })
   end
   return self --so we can chain methods
@@ -308,7 +314,7 @@ local function animate(ent)
         animate(ent)
       else
         for k, v in pairs(aq._keys) do
-          if ent[k] and type(ent[k]) == 'number' then ent[k] = easing[aq.easing](time - aq.lasttime, aq.old[k], v - aq.old[k], aq.speed) end
+          if ent[k] and type(ent[k]) == 'number' then ent[k] = aq.easing(time - aq.lasttime, aq.old[k], v - aq.old[k], aq.speed, aq.a, aq.b) end
         end
       end --if aq.lasttime + vv.speed <= time
     end --if j[1]
@@ -424,6 +430,14 @@ lQuery.event = function(e, a, b, c)
     lQuery.KeyPressedUni = b
   elseif e == "kr" then
     lQuery.KeyPressed = false
+  elseif e == "rz" then
+    screen_width = a
+    screen_height = b
+    if lQuery._onresize[1] then
+      for i = 1, #lQuery._onresize do
+	lQuery._onresize[i](a, b)
+      end
+    end
   elseif e == "q" then
     if atexit then atexit() end
   end
